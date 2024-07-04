@@ -89,3 +89,9 @@ export const sortConfig = {
     },
   ],
 };
+
+export const currentLocationFilter = {
+  key: 'location',
+  schemaType: 'location',
+  label: 'Current location',
+};

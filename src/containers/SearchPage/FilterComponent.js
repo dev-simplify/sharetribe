@@ -11,6 +11,7 @@ import BookingDateRangeFilter from './BookingDateRangeFilter/BookingDateRangeFil
 import KeywordFilter from './KeywordFilter/KeywordFilter';
 import PriceFilter from './PriceFilter/PriceFilter';
 import IntegerRangeFilter from './IntegerRangeFilter/IntegerRangeFilter';
+import CurrentLocationFilter from './CurrentLocationFilter/CurrentLocationFilter';
 
 /**
  * FilterComponent is used to map configured filter types
@@ -99,6 +100,19 @@ const FilterComponent = props => {
           initialValues={initialValues([key], liveEdit)}
           onSubmit={getHandleChangedValueFn(useHistoryPush)}
           minimumNights={isNightlyMode ? 1 : 0}
+          {...rest}
+        />
+      );
+    }
+    case 'currentLocation': {
+      const queryParamNames = [constructQueryParamName(key)];
+      return (
+        <CurrentLocationFilter
+          id={componentId}
+          label={intl.formatMessage({ id: 'FilterComponent.locationLabel' })}
+          queryParamNames={queryParamNames}
+          initialValues={initialValues(queryParamNames, liveEdit)}
+          onSubmit={getHandleChangedValueFn(useHistoryPush)}
           {...rest}
         />
       );
