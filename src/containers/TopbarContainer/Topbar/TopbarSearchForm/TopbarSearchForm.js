@@ -34,7 +34,7 @@ const KeywordSearchField = props => {
               ref={inputRef}
               type="text"
               placeholder={intl.formatMessage({
-                id: 'TopbarSearchForm.placeholder',
+                id: 'TopbarSearchForm.placeholder.keyword',
               })}
               autoComplete="off"
             />
@@ -46,7 +46,15 @@ const KeywordSearchField = props => {
 };
 
 const LocationSearchField = props => {
-  const { desktopInputRootClass, intl, isMobile, inputRef, onLocationChange } = props;
+  const {
+    desktopInputRootClass,
+    locationSearchWrapperClasses,
+    intl,
+    isMobile,
+    inputRef,
+    onLocationChange,
+  } = props;
+
   return (
     <Field
       name="location"
@@ -65,12 +73,12 @@ const LocationSearchField = props => {
 
         return (
           <LocationAutocompleteInput
-            className={isMobile ? css.mobileInputRoot : desktopInputRootClass}
+            className={`${isMobile ? css.mobileInputRoot : desktopInputRootClass} ${locationSearchWrapperClasses}`}
             iconClassName={isMobile ? css.mobileIcon : css.desktopIcon}
             inputClassName={isMobile ? css.mobileInput : css.desktopInput}
             predictionsClassName={isMobile ? css.mobilePredictions : css.desktopPredictions}
             predictionsAttributionClassName={isMobile ? css.mobilePredictionsAttribution : null}
-            placeholder={intl.formatMessage({ id: 'TopbarSearchForm.placeholder' })}
+            placeholder={intl.formatMessage({ id: 'TopbarSearchForm.placeholder.location' })}
             closeOnBlur={!isMobile}
             inputRef={inputRef}
             input={{ ...restInput, onChange: searchOnChange }}
@@ -86,9 +94,9 @@ class TopbarSearchFormComponent extends Component {
   constructor(props) {
     super(props);
     // onChange is used for location search
-    this.onChange = this.onChange.bind(this);
+    this.handleLocationChange = this.handleLocationChange.bind(this);
     // onSubmit is used for keywords search
-    this.onSubmit = this.onSubmit.bind(this);
+    this.handleKeywordSearch = this.handleKeywordSearch.bind(this);
 
     // Callback ref
     this.searchInput = null;
@@ -97,9 +105,9 @@ class TopbarSearchFormComponent extends Component {
     };
   }
 
-  onChange(location) {
+  handleLocationChange(location) {
     const { appConfig, onSubmit } = this.props;
-    if (!isMainSearchTypeKeywords(appConfig) && location.selectedPlace) {
+    if (location.selectedPlace) {
       // Note that we use `onSubmit` instead of the conventional
       // `handleSubmit` prop for submitting. We want to autosubmit
       // when a place is selected, and don't require any extra
@@ -110,10 +118,10 @@ class TopbarSearchFormComponent extends Component {
     }
   }
 
-  onSubmit(values) {
+  handleKeywordSearch(values) {
     const { appConfig, onSubmit } = this.props;
     if (isMainSearchTypeKeywords(appConfig)) {
-      onSubmit({ keywords: values.keywords });
+      onSubmit({ keywords: values.keywords || '' });
       // blur search input to hide software keyboard
       this.searchInput?.blur();
     }
@@ -122,7 +130,7 @@ class TopbarSearchFormComponent extends Component {
   render() {
     const { onSubmit, appConfig, ...restOfProps } = this.props;
     const isKeywordsSearch = isMainSearchTypeKeywords(appConfig);
-    const submit = isKeywordsSearch ? this.onSubmit : onSubmit;
+    const submit = isKeywordsSearch ? this.handleKeywordSearch : onSubmit;
     return (
       <FinalForm
         {...restOfProps}
@@ -136,7 +144,7 @@ class TopbarSearchFormComponent extends Component {
             isMobile,
             handleSubmit,
           } = formRenderProps;
-          const classes = classNames(rootClassName, className);
+          const classes = classNames(rootClassName, className, css.searchParent);
           const desktopInputRootClass = desktopInputRoot || css.desktopInputRoot;
 
           // Location search: allow form submit only when the place has changed
@@ -145,28 +153,32 @@ class TopbarSearchFormComponent extends Component {
 
           const keywordSearchWrapperClasses = classNames(
             css.keywordSearchWrapper,
-            isMobile ? css.mobileInputRoot : desktopInputRootClass
+            isMobile ? css.mobileInputRoot : desktopInputRootClass,
+            css.searchChild,
           );
+
+          const locationSearchWrapperClasses = classNames(css.searchChild);
 
           return (
             <Form className={classes} onSubmit={submitFormFn} enforcePagePreloadFor="SearchPage">
-              {isKeywordsSearch ? (
-                <KeywordSearchField
-                  keywordSearchWrapperClasses={keywordSearchWrapperClasses}
-                  iconClass={classNames(isMobile ? css.mobileIcon : css.desktopIcon || css.icon)}
-                  intl={intl}
-                  isMobile={isMobile}
-                  inputRef={this.setSearchInputRef}
-                />
-              ) : (
-                <LocationSearchField
-                  desktopInputRootClass={desktopInputRootClass}
-                  intl={intl}
-                  isMobile={isMobile}
-                  inputRef={this.setSearchInputRef}
-                  onLocationChange={this.onChange}
-                />
-              )}
+              {/*{isKeywordsSearch ? (*/}
+              <KeywordSearchField
+                keywordSearchWrapperClasses={keywordSearchWrapperClasses}
+                iconClass={classNames(isMobile ? css.mobileIcon : css.desktopIcon || css.icon)}
+                intl={intl}
+                isMobile={isMobile}
+                inputRef={this.setSearchInputRef}
+              />
+              {/*) : (*/}
+              <LocationSearchField
+                desktopInputRootClass={desktopInputRootClass}
+                locationSearchWrapperClasses={locationSearchWrapperClasses}
+                intl={intl}
+                isMobile={isMobile}
+                inputRef={this.setSearchInputRef}
+                onLocationChange={this.handleLocationChange}
+              />
+              {/*)}*/}
             </Form>
           );
         }}

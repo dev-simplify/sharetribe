@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import { array, arrayOf, bool, func, number, object, shape, string } from 'prop-types';
 import pickBy from 'lodash/pickBy';
 import classNames from 'classnames';
-
+import qs from 'qs';
 import appSettings from '../../../config/settings';
 import { useConfiguration } from '../../../context/configurationContext';
 import { useRouteConfiguration } from '../../../context/routeConfigurationContext';
@@ -157,24 +157,44 @@ class TopbarComponent extends Component {
     const { history, config, routeConfiguration } = this.props;
 
     const topbarSearchParams = () => {
-      if (isMainSearchTypeKeywords(config)) {
-        return { keywords: values?.keywords };
-      }
-      // topbar search defaults to 'location' search
-      const { search, selectedPlace } = values?.location;
-      const { origin, bounds } = selectedPlace;
-      const originMaybe = isOriginInUse(config) ? { origin } : {};
+      let searchParam = {};
+      const currentQueryParams = qs.parse(this.props.location.search, { ignoreQueryPrefix: true });
 
-      return {
-        ...originMaybe,
-        address: search,
-        bounds,
-      };
+      if ('keywords' in values) {
+        if (values.keywords) {
+          searchParam.keywords = values.keywords;
+        }
+      } else if (currentQueryParams?.keywords) {
+        searchParam.keywords = currentQueryParams.keywords;
+      }
+
+      if (values?.location) {
+        const { search, selectedPlace } = values?.location;
+        const { origin, bounds } = selectedPlace;
+        const originMaybe = isOriginInUse(config) ? { origin } : {};
+
+        searchParam = {
+          ...searchParam,
+          ...originMaybe,
+          address: search,
+          bounds,
+        };
+      } else {
+        for (const key of ['address', 'bounds', 'originMaybe']) {
+          if (currentQueryParams[key]) {
+            searchParam[key] = currentQueryParams[key];
+          }
+        }
+      }
+
+      return searchParam;
     };
+
     const searchParams = {
       ...currentSearchParams,
       ...topbarSearchParams(),
     };
+
     history.push(createResourceLocatorString('SearchPage', routeConfiguration, {}, searchParams));
   }
 
@@ -265,9 +285,9 @@ class TopbarComponent extends Component {
       return {
         location: locationFieldsPresent
           ? {
-              search: address,
-              selectedPlace: { address, origin, bounds },
-            }
+            search: address,
+            selectedPlace: { address, origin, bounds },
+          }
           : null,
       };
     };
