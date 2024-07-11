@@ -3,25 +3,12 @@ import React from 'react';
 import css from './TopbarSearchForm.module.css';
 
 const IconSearchDesktop = () => (
-  <svg
-    className={css.iconSvg}
-    width="21"
-    height="22"
-    viewBox="0 0 21 22"
-    xmlns="http://www.w3.org/2000/svg"
-  >
-    <g
+  <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px"
+       className={css.iconSvg}
+       fill="#e8eaed">
+    <path
       className={css.iconSvgGroup}
-      transform="matrix(-1 0 0 1 20 1)"
-      strokeWidth="2"
-      fill="none"
-      fillRule="evenodd"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M13 14l5.241 5.241" />
-      <circle cx="7.5" cy="7.5" r="7.5" />
-    </g>
+      d="M440-160q-17 0-28.5-11.5T400-200v-240L168-736q-15-20-4.5-42t36.5-22h560q26 0 36.5 22t-4.5 42L560-440v240q0 17-11.5 28.5T520-160h-80Zm40-308 198-252H282l198 252Zm0 0Z" />
   </svg>
 );
 

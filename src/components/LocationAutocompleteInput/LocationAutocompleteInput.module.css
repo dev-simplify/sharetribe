@@ -15,6 +15,7 @@
 
 .iconSvg {
   margin: auto;
+  color: var(--marketplaceColor);
 }
 
 .iconSvgGroup {
