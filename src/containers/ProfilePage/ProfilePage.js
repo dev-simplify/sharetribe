@@ -217,7 +217,7 @@ export const MainContent = props => {
   return (
     <div>
       <H2 as="h1" className={css.desktopHeading}>
-        <FormattedMessage id="ProfilePage.desktopHeading" values={{ name: displayName }} />
+        { displayName }.
       </H2>
       {hasBio ? <p className={css.bio}>{bioWithLinks}</p> : null}
       <CustomUserFields
