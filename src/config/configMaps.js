@@ -12,7 +12,7 @@ export const googleMapsAPIKey = process.env.REACT_APP_GOOGLE_MAPS_API_KEY;
 // Choose map provider: 'mapbox', 'googleMaps'
 // Note: The mapProvider comes from map asset nowadays by default.
 //       To use this built-in configuration, you need to remove the overwrite from configHelper.js (mergeMapConfig func)
-export const mapProvider = 'mapbox';
+export const mapProvider = 'googleMaps';
 
 // The location search input can be configured to show default
 // searches when the user focuses on the input and hasn't yet typed
@@ -26,7 +26,7 @@ export const search = {
 
   // Distance in meters for calculating the bounding box around the
   // current location.
-  currentLocationBoundsDistance: 1000,
+  currentLocationBoundsDistance: 16000,
 
   // This affects location search.
   // These "default locations" can be edited in the
