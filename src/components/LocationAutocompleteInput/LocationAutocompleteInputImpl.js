@@ -116,10 +116,11 @@ const LocationPredictionsList = props => {
   const classes = classNames(
     rootClassName || css.predictionsRoot,
     predictionRootMapProviderClass,
-    className
+    className,
   );
 
   return (
+
     <div className={classes}>
       <ul className={css.predictions}>{predictions.map(item)}</ul>
       {children}
@@ -208,6 +209,13 @@ class LocationAutocompleteInputImplementation extends Component {
 
   componentDidMount() {
     this._isMounted = true;
+
+    //Select current location if no location or keyword search is performed
+    const urlParams = new URLSearchParams(window.location.search);
+    if (!(urlParams.get('bounds') || urlParams.get('keywords'))) {
+      this.selectItemIfNoneSelected();
+      console.log('Setting current location');
+    }
   }
 
   componentWillUnmount() {
@@ -238,8 +246,8 @@ class LocationAutocompleteInputImplementation extends Component {
     // be used to reduce typing and Geocoding API calls for common
     // searches.
     const defaultPredictions = (config.maps.search.suggestCurrentLocation
-      ? [{ id: geocoderVariant.CURRENT_LOCATION_ID, predictionPlace: {} }]
-      : []
+        ? [{ id: geocoderVariant.CURRENT_LOCATION_ID, predictionPlace: {} }]
+        : []
     ).concat(config.maps.search.defaults);
 
     return showDefaultPredictions ? defaultPredictions : fetchedPredictions;
@@ -370,6 +378,7 @@ class LocationAutocompleteInputImplementation extends Component {
         });
       });
   }
+
   selectItemIfNoneSelected() {
     if (this.state.fetchingPredictions) {
       // No need to select anything since prediction fetch is still going on
@@ -387,6 +396,7 @@ class LocationAutocompleteInputImplementation extends Component {
       }
     }
   }
+
   predict(search) {
     const config = this.props.config;
     const onChange = this.props.input.onChange;
@@ -471,7 +481,7 @@ class LocationAutocompleteInputImplementation extends Component {
           this.selectPrediction(prediction);
           this.finalizeSelection();
         }
-      }
+      },
     );
   }
 
