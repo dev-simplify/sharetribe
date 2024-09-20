@@ -27,6 +27,7 @@ import TopbarMobileMenu from './TopbarMobileMenu/TopbarMobileMenu';
 import TopbarDesktop from './TopbarDesktop/TopbarDesktop';
 
 import css from './Topbar.module.css';
+import { LocalStorageHelper } from '../../../util/localStorageHelper';
 
 const MAX_MOBILE_SCREEN_WIDTH = 1024;
 
@@ -201,6 +202,8 @@ class TopbarComponent extends Component {
   handleLogout() {
     const { onLogout, history, routeConfiguration } = this.props;
     onLogout().then(() => {
+      LocalStorageHelper.clear();
+
       const path = pathByRouteName('LandingPage', routeConfiguration);
 
       // In production we ensure that data is really lost,

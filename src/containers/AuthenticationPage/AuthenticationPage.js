@@ -57,6 +57,8 @@ import { TOS_ASSET_NAME, PRIVACY_POLICY_ASSET_NAME } from './AuthenticationPage.
 
 import css from './AuthenticationPage.module.css';
 import { FacebookLogo, GoogleLogo } from './socialLoginLogos';
+import qs from 'qs';
+import { LocalStorageHelper } from '../../util/localStorageHelper';
 
 // Social login buttons are needed by AuthenticationForms
 export const SocialLoginButtonsMaybe = props => {
@@ -200,6 +202,8 @@ export const AuthenticationForms = props => {
     },
   ];
 
+  const isProvider = qs.parse(location.search, { ignoreQueryPrefix: true }).provider === 'true';
+
   const handleSubmitSignup = values => {
     const { userType, email, password, fname, lname, displayName, ...rest } = values;
     const displayNameMaybe = displayName ? { displayName: displayName.trim() } : {};
@@ -263,11 +267,25 @@ export const AuthenticationForms = props => {
       {loginOrSignupError}
 
       {isLogin ? (
-        <LoginForm className={css.loginForm} onSubmit={submitLogin} inProgress={authInProgress} />
+        <LoginForm
+          className={css.loginForm}
+          onSubmit={event => {
+            if (isProvider) {
+              LocalStorageHelper.setItem('IS_PROVIDER', 'true');
+            }
+            submitLogin(event);
+          }}
+          inProgress={authInProgress}
+        />
       ) : (
         <SignupForm
           className={css.signupForm}
-          onSubmit={handleSubmitSignup}
+          onSubmit={event => {
+            if (isProvider) {
+              LocalStorageHelper.setItem('IS_PROVIDER', 'true');
+            }
+            handleSubmitSignup(event);
+          }}
           inProgress={authInProgress}
           termsAndConditions={termsAndConditions}
           preselectedUserType={preselectedUserType}
@@ -454,6 +472,7 @@ export const AuthenticationPageComponent = props => {
   const [authInfo, setAuthInfo] = useState(getAuthInfoFromCookies());
   const [authError, setAuthError] = useState(getAuthErrorFromCookies());
   const config = useConfiguration();
+  const routeConfiguration = useRouteConfiguration();
 
   useEffect(() => {
     // Remove the autherror cookie once the content is saved to state
@@ -581,6 +600,7 @@ export const AuthenticationPageComponent = props => {
               onResendVerificationEmail={onResendVerificationEmail}
               resendErrorMessage={resendErrorMessage}
               sendVerificationEmailInProgress={sendVerificationEmailInProgress}
+              routeConfiguration={routeConfiguration}
             />
           ) : (
             <AuthenticationOrConfirmInfoForm
@@ -743,10 +763,7 @@ const mapDispatchToProps = dispatch => ({
 // See: https://github.com/ReactTraining/react-router/issues/4671
 const AuthenticationPage = compose(
   withRouter,
-  connect(
-    mapStateToProps,
-    mapDispatchToProps
-  ),
+  connect(mapStateToProps, mapDispatchToProps),
   injectIntl
 )(AuthenticationPageComponent);
 
