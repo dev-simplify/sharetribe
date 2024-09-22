@@ -150,6 +150,8 @@ const getNonUserFieldParams = (values, userFieldConfigs) => {
   }, {});
 };
 
+const isProvider = qs.parse(location.search, { ignoreQueryPrefix: true }).user === 'provider';
+
 // Tabs for SignupForm and LoginForm
 export const AuthenticationForms = props => {
   const {
@@ -201,8 +203,6 @@ export const AuthenticationForms = props => {
       },
     },
   ];
-
-  const isProvider = qs.parse(location.search, { ignoreQueryPrefix: true }).provider === 'true';
 
   const handleSubmitSignup = values => {
     const { userType, email, password, fname, lname, displayName, ...rest } = values;

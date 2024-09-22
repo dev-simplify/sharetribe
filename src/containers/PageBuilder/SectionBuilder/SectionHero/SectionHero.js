@@ -30,7 +30,7 @@ const SectionHero = props => {
   const fieldOptions = { fieldComponents };
 
   const hasHeaderFields = hasDataInFields([title, description, callToAction], fieldOptions);
-debugger
+
   return (
     <SectionContainer
       id={sectionId}
