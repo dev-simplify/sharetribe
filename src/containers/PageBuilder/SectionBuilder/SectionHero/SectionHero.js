@@ -22,6 +22,8 @@ const SectionHero = props => {
     options,
   } = props;
 
+  const postANewListingAction = { fieldType: 'internalButtonLink', href: '/l/new', content: 'Post a new listing'};
+
   // If external mapping has been included for fields
   // E.g. { h1: { component: MyAwesomeHeader } }
   const fieldComponents = options?.fieldComponents;
@@ -42,7 +44,11 @@ const SectionHero = props => {
           <header className={defaultClasses.sectionDetails}>
             <Field data={title} className={defaultClasses.title} options={fieldOptions} />
             <Field data={description} className={defaultClasses.description} options={fieldOptions} />
-            <Field data={callToAction} className={defaultClasses.ctaButton} options={fieldOptions} />
+            <div class="header-btn">
+              {callToAction.href==='/s' && <Field data={postANewListingAction} className={defaultClasses.ctaButton} options={fieldOptions} />}
+              <Field data={callToAction} className={defaultClasses.ctaButton} options={fieldOptions} />
+            </div>
+            
           </header>
         </div>
       ) : null}
