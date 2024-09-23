@@ -2,9 +2,19 @@ import React from 'react';
 
 import { FormattedMessage } from '../../util/reactIntl';
 
-import { Heading, NamedLink, IconEmailSent, InlineTextButton, IconClose } from '../../components';
+import {
+  Heading,
+  IconClose,
+  IconEmailSent,
+  InlineTextButton,
+  NamedLink,
+  PrimaryButtonInline,
+} from '../../components';
 
 import css from './AuthenticationPage.module.css';
+import { useHistory } from 'react-router-dom';
+import { pathByRouteName } from '../../util/routes';
+import { LocalStorageHelper } from '../../util/localStorageHelper';
 
 const EmailVerificationInfo = props => {
   const {
@@ -13,6 +23,7 @@ const EmailVerificationInfo = props => {
     onResendVerificationEmail,
     resendErrorMessage,
     sendVerificationEmailInProgress,
+    routeConfiguration,
   } = props;
 
   const resendEmailLink = (
@@ -26,6 +37,9 @@ const EmailVerificationInfo = props => {
       <FormattedMessage id="AuthenticationPage.fixEmailLinkText" />
     </NamedLink>
   );
+
+  const history = useHistory();
+  const isProvider = LocalStorageHelper.getItem('IS_PROVIDER') === 'true';
 
   return (
     <div className={css.content}>
@@ -42,6 +56,21 @@ const EmailVerificationInfo = props => {
       <p className={css.modalMessage}>
         <FormattedMessage id="AuthenticationPage.verifyEmailText" values={{ email }} />
       </p>
+
+      {isProvider && (
+        <PrimaryButtonInline
+          onClick={event => {
+            event.preventDefault();
+            event.stopPropagation();
+            history.push(pathByRouteName('NewListingPage', routeConfiguration)); // Used the "NewListingPage" link from routeConfiguration.js
+            LocalStorageHelper.removeItem('IS_PROVIDER');
+          }}
+          style={{ marginTop: '10px' }}
+        >
+          <FormattedMessage id="ManageListingsPage.createListing" />
+        </PrimaryButtonInline>
+      )}
+
       {resendErrorMessage}
 
       <div className={css.bottomWrapper}>
