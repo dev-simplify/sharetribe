@@ -1496,3 +1496,12 @@ textarea {
     margin-top: 32px;
   }
 }
+
+.header-btn{display: flex; justify-content: center; margin: 0 -8px; width: calc(100% + 16px);}
+.header-btn a{margin: 0 8px; min-width: 168px; text-align: center;}
+
+@media(max-width: 767px) {
+.header-btn{display: block; text-align: center; margin: 0; width: 100%;}
+.header-btn a{margin: 16px 0 0 0; width: 100%;}
+.header-btn a:first-child{margin-top: 0;}
+}

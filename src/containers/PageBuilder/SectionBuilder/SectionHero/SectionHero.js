@@ -44,8 +44,11 @@ const SectionHero = props => {
           <header className={defaultClasses.sectionDetails}>
             <Field data={title} className={defaultClasses.title} options={fieldOptions} />
             <Field data={description} className={defaultClasses.description} options={fieldOptions} />
-            <Field data={callToAction} className={defaultClasses.ctaButton} options={fieldOptions} />
-            {callToAction.href==='/s' && <Field data={postANewListingAction} className={defaultClasses.ctaButton} options={fieldOptions} />}
+            <div class="header-btn">
+              {callToAction.href==='/s' && <Field data={postANewListingAction} className={defaultClasses.ctaButton} options={fieldOptions} />}
+              <Field data={callToAction} className={defaultClasses.ctaButton} options={fieldOptions} />
+            </div>
+            
           </header>
         </div>
       ) : null}
