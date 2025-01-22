@@ -155,7 +155,7 @@ const TopbarComponent = props => {
 
     const topbarSearchParams = () => {
       let searchParam = {};
-      const currentQueryParams = qs.parse(this.props.location.search, { ignoreQueryPrefix: true });
+      const currentQueryParams = qs.parse(props.location.search, { ignoreQueryPrefix: true });
 
       if ('keywords' in values) {
         if (values.keywords) {
