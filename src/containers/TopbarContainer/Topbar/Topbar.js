@@ -359,7 +359,6 @@ const TopbarComponent = props => {
       <GenericError show={showGenericError} />
     </div>
   );
-    );
 };
 
 /**
