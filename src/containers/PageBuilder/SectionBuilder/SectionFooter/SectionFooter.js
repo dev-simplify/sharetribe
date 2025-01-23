@@ -137,6 +137,7 @@ const SectionFooter = props => {
               </div>
             ) : null}
             <Field data={copyright} className={css.copyright} />
+            <span style={{"display":"inline-block","fontSize":"12px","lineHeight":"16px","color":"var(--colorGrey500)"}}>(v2.0.0)</span>
           </div>
           <div className={classNames(css.grid, getGridCss(numberOfColumns))}>
             <BlockBuilder blocks={blocks} sectionId={sectionId} options={options} />
