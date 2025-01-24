@@ -12,7 +12,7 @@ import { useRouteConfiguration } from '../../context/routeConfigurationContext';
 import { camelize } from '../../util/string';
 import { pathByRouteName } from '../../util/routes';
 import { apiBaseUrl } from '../../util/api';
-import { FormattedMessage, injectIntl, intlShape } from '../../util/reactIntl';
+import { FormattedMessage, injectIntl, intlShape, useIntl } from '../../util/reactIntl';
 import { propTypes } from '../../util/types';
 import { ensureCurrentUser } from '../../util/data';
 import {
@@ -466,6 +466,36 @@ const getAuthErrorFromCookies = () => {
     : null;
 };
 
+/**
+ * The AuthenticationPage component.
+ *
+ * @component
+ * @param {Object} props
+ * @param {boolean} props.authInProgress - Whether the authentication is in progress
+ * @param {propTypes.currentUser} props.currentUser - The current user
+ * @param {boolean} props.isAuthenticated - Whether the user is authenticated
+ * @param {propTypes.error} props.loginError - The login error
+ * @param {propTypes.error} props.signupError - The signup error
+ * @param {propTypes.error} props.confirmError - The confirm error
+ * @param {Function} props.submitLogin - The login submit function
+ * @param {Function} props.submitSignup - The signup submit function
+ * @param {Function} props.submitSingupWithIdp - The signup with IdP submit function
+ * @param {'login' | 'signup'| 'confirm'} props.tab - The tab to render
+ * @param {boolean} props.sendVerificationEmailInProgress - Whether the verification email is in progress
+ * @param {propTypes.error} props.sendVerificationEmailError - The verification email error
+ * @param {Function} props.onResendVerificationEmail - The resend verification email function
+ * @param {Function} props.onManageDisableScrolling - The manage disable scrolling function
+ * @param {object} props.privacyAssetsData - The privacy assets data
+ * @param {boolean} props.privacyFetchInProgress - Whether the privacy fetch is in progress
+ * @param {propTypes.error} props.privacyFetchError - The privacy fetch error
+ * @param {object} props.tosAssetsData - The terms of service assets data
+ * @param {boolean} props.tosFetchInProgress - Whether the terms of service fetch is in progress
+ * @param {propTypes.error} props.tosFetchError - The terms of service fetch error
+ * @param {object} props.location - The location object
+ * @param {object} props.params - The path parameters
+ * @param {boolean} props.scrollingDisabled - Whether the scrolling is disabled
+ * @returns {JSX.Element}
+ */
 export const AuthenticationPageComponent = props => {
   const [tosModalOpen, setTosModalOpen] = useState(false);
   const [privacyModalOpen, setPrivacyModalOpen] = useState(false);
@@ -473,6 +503,7 @@ export const AuthenticationPageComponent = props => {
   const [authError, setAuthError] = useState(getAuthErrorFromCookies());
   const config = useConfiguration();
   const routeConfiguration = useRouteConfiguration();
+  const intl = useIntl();
 
   useEffect(() => {
     // Remove the autherror cookie once the content is saved to state
@@ -490,7 +521,6 @@ export const AuthenticationPageComponent = props => {
   const {
     authInProgress,
     currentUser,
-    intl,
     isAuthenticated,
     location,
     params: pathParams,
@@ -501,7 +531,7 @@ export const AuthenticationPageComponent = props => {
     submitSignup,
     confirmError,
     submitSingupWithIdp,
-    tab,
+    tab = 'signup',
     sendVerificationEmailInProgress,
     sendVerificationEmailError,
     onResendVerificationEmail,
@@ -663,59 +693,6 @@ export const AuthenticationPageComponent = props => {
   );
 };
 
-AuthenticationPageComponent.defaultProps = {
-  currentUser: null,
-  loginError: null,
-  signupError: null,
-  confirmError: null,
-  tab: 'signup',
-  sendVerificationEmailError: null,
-  showSocialLoginsForTests: false,
-  privacyAssetsData: null,
-  privacyFetchInProgress: false,
-  privacyFetchError: null,
-  tosAssetsData: null,
-  tosFetchInProgress: false,
-  tosFetchError: null,
-};
-
-AuthenticationPageComponent.propTypes = {
-  authInProgress: bool.isRequired,
-  currentUser: propTypes.currentUser,
-  isAuthenticated: bool.isRequired,
-  loginError: propTypes.error,
-  scrollingDisabled: bool.isRequired,
-  signupError: propTypes.error,
-  confirmError: propTypes.error,
-
-  submitLogin: func.isRequired,
-  submitSignup: func.isRequired,
-  tab: oneOf(['login', 'signup', 'confirm']),
-
-  sendVerificationEmailInProgress: bool.isRequired,
-  sendVerificationEmailError: propTypes.error,
-  onResendVerificationEmail: func.isRequired,
-  onManageDisableScrolling: func.isRequired,
-
-  // to fetch privacy-policy page asset
-  // which is shown in modal
-  privacyAssetsData: object,
-  privacyFetchInProgress: bool,
-  privacyFetchError: propTypes.error,
-
-  // to fetch terms-of-service page asset
-  // which is shown in modal
-  tosAssetsData: object,
-  tosFetchInProgress: bool,
-  tosFetchError: propTypes.error,
-
-  // from withRouter
-  location: shape({ state: object }).isRequired,
-
-  // from injectIntl
-  intl: intlShape.isRequired,
-};
-
 const mapStateToProps = state => {
   const { isAuthenticated, loginError, signupError, confirmError } = state.auth;
   const { currentUser, sendVerificationEmailInProgress, sendVerificationEmailError } = state.user;
@@ -763,8 +740,10 @@ const mapDispatchToProps = dispatch => ({
 // See: https://github.com/ReactTraining/react-router/issues/4671
 const AuthenticationPage = compose(
   withRouter,
-  connect(mapStateToProps, mapDispatchToProps),
-  injectIntl
+  connect(
+    mapStateToProps,
+    mapDispatchToProps
+  )
 )(AuthenticationPageComponent);
 
 export default AuthenticationPage;

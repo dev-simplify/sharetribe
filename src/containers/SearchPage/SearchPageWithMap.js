@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import { array, arrayOf, bool, func, object, oneOf, shape, string } from 'prop-types';
 import { connect } from 'react-redux';
 import { compose } from 'redux';
 import { useHistory, useLocation } from 'react-router-dom';
@@ -10,18 +9,26 @@ import classNames from 'classnames';
 import { useConfiguration } from '../../context/configurationContext';
 import { useRouteConfiguration } from '../../context/routeConfigurationContext';
 
-import { useIntl, intlShape, FormattedMessage } from '../../util/reactIntl';
+import { useIntl, FormattedMessage } from '../../util/reactIntl';
 import {
   isAnyFilterActive,
   isMainSearchTypeKeywords,
   isOriginInUse,
   getQueryParamNames,
 } from '../../util/search';
-import { NO_ACCESS_PAGE_USER_PENDING_APPROVAL, parse } from '../../util/urlHelpers';
+import {
+  NO_ACCESS_PAGE_USER_PENDING_APPROVAL,
+  NO_ACCESS_PAGE_VIEW_LISTINGS,
+  parse,
+} from '../../util/urlHelpers';
 import { createResourceLocatorString, pathByRouteName } from '../../util/routes';
 import { propTypes } from '../../util/types';
-import { isErrorUserPendingApproval, isForbiddenError } from '../../util/errors';
-import { isUserAuthorized } from '../../util/userHelpers';
+import {
+  isErrorNoViewingPermission,
+  isErrorUserPendingApproval,
+  isForbiddenError,
+} from '../../util/errors';
+import { hasPermissionToViewData, isUserAuthorized } from '../../util/userHelpers';
 import { getListingsById } from '../../ducks/marketplaceData.duck';
 import { manageDisableScrolling, isScrollingDisabled } from '../../ducks/ui.duck';
 
@@ -39,6 +46,7 @@ import {
   createSearchResultSchema,
   pickListingFieldFilters,
   omitLimitedListingFieldParams,
+  getDatesAndSeatsMaybe,
 } from './SearchPage.shared';
 
 import FilterComponent from './FilterComponent';
@@ -210,12 +218,16 @@ export class SearchPageComponent extends Component {
         // We should always trust urlQueryParams with those.
         // The same applies to keywords, if the main search type is keyword search.
         const keywordsMaybe = isMainSearchTypeKeywords(config) ? { keywords } : {};
+
+        const datesAndSeatsMaybe = getDatesAndSeatsMaybe(mergedQueryParams, updatedURLParams);
+
         return {
           currentQueryParams: omitLimitedListingFieldParams(
             {
               ...mergedQueryParams,
               ...updatedURLParams,
               ...keywordsMaybe,
+              ...datesAndSeatsMaybe,
               address,
               bounds,
             },
@@ -250,14 +262,14 @@ export class SearchPageComponent extends Component {
   render() {
     const {
       intl,
-      listings,
+      listings = [],
       location,
       onManageDisableScrolling,
       pagination,
       scrollingDisabled,
       searchInProgress,
       searchListingsError,
-      searchParams,
+      searchParams = {},
       activeListingId,
       onActivateListing,
       routeConfiguration,
@@ -555,7 +567,7 @@ export class SearchPageComponent extends Component {
           </div>
           <ModalInMobile
             className={css.mapPanel}
-            id="SearchPage.map"
+            id="SearchPage_map"
             isModalOpenOnMobile={this.state.isSearchMapOpenOnMobile}
             onClose={() => this.setState({ isSearchMapOpenOnMobile: false })}
             showAsModalMaxWidth={MODAL_BREAKPOINT}
@@ -565,6 +577,7 @@ export class SearchPageComponent extends Component {
               {shouldShowSearchMap ? (
                 <SearchMap
                   reusableContainerClassName={css.map}
+                  rootClassName={css.map}
                   activeListingId={activeListingId}
                   bounds={bounds}
                   center={origin}
@@ -573,7 +586,7 @@ export class SearchPageComponent extends Component {
                   listings={listings || []}
                   onMapMoveEnd={this.onMapMoveEnd}
                   onCloseAsModal={() => {
-                    onManageDisableScrolling('SearchPage.map', false);
+                    onManageDisableScrolling('SearchPage_map', false);
                   }}
                   messages={intl.messages}
                 />
@@ -586,43 +599,22 @@ export class SearchPageComponent extends Component {
   }
 }
 
-SearchPageComponent.defaultProps = {
-  listings: [],
-  pagination: null,
-  searchListingsError: null,
-  searchParams: {},
-  activeListingId: null,
-};
-
-SearchPageComponent.propTypes = {
-  listings: array,
-  onActivateListing: func.isRequired,
-  onManageDisableScrolling: func.isRequired,
-  pagination: propTypes.pagination,
-  scrollingDisabled: bool.isRequired,
-  searchInProgress: bool.isRequired,
-  searchListingsError: propTypes.error,
-  searchParams: object,
-
-  // from useHistory
-  history: shape({
-    push: func.isRequired,
-  }).isRequired,
-  // from useLocation
-  location: shape({
-    search: string.isRequired,
-  }).isRequired,
-
-  // from useIntl
-  intl: intlShape.isRequired,
-
-  // from useConfiguration
-  config: object.isRequired,
-
-  // from useRouteConfiguration
-  routeConfiguration: arrayOf(propTypes.route).isRequired,
-};
-
+/**
+ * SearchPage component with map layout
+ *
+ * @param {Object} props
+ * @param {propTypes.uuid} [props.activeListingId] - The active listing ID
+ * @param {propTypes.currentUser} [props.currentUser] - The current user
+ * @param {Array<propTypes.listing>} [props.listings] - The listings
+ * @param {propTypes.pagination} [props.pagination] - The pagination
+ * @param {boolean} [props.scrollingDisabled] - Whether the scrolling is disabled
+ * @param {boolean} [props.searchInProgress] - Whether the search is in progress
+ * @param {propTypes.error} [props.searchListingsError] - The search listings error
+ * @param {Object} [props.searchParams] - The search params from the Redux state
+ * @param {Function} [props.onActivateListing] - The function to activate a listing
+ * @param {Function} [props.onManageDisableScrolling] - The function to manage the disable scrolling
+ * @returns {JSX.Element}
+ */
 const EnhancedSearchPage = props => {
   const config = useConfiguration();
   const routeConfiguration = useRouteConfiguration();
@@ -644,12 +636,22 @@ const EnhancedSearchPage = props => {
   const { currentUser, ...restOfProps } = props;
   const isPrivateMarketplace = config.accessControl.marketplace.private === true;
   const isUnauthorizedUser = currentUser && !isUserAuthorized(currentUser);
+  const hasNoViewingRightsUser = currentUser && !hasPermissionToViewData(currentUser);
   const hasUserPendingApprovalError = isErrorUserPendingApproval(searchListingsError);
+  const hasNoViewingRightsError = isErrorNoViewingPermission(searchListingsError);
+
   if ((isPrivateMarketplace && isUnauthorizedUser) || hasUserPendingApprovalError) {
     return (
       <NamedRedirect
         name="NoAccessPage"
         params={{ missingAccessRight: NO_ACCESS_PAGE_USER_PENDING_APPROVAL }}
+      />
+    );
+  } else if (hasNoViewingRightsUser || hasNoViewingRightsError) {
+    return (
+      <NamedRedirect
+        name="NoAccessPage"
+        params={{ missingAccessRight: NO_ACCESS_PAGE_VIEW_LISTINGS }}
       />
     );
   }
